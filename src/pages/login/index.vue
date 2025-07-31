@@ -2,6 +2,7 @@
 import type { FormRules } from "element-plus"
 import type { LoginRequestData } from "./apis/type"
 import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
+import { setName } from "@@/utils/cache/cookies"
 import { Lock, User } from "@element-plus/icons-vue"
 import { useSettingsStore } from "@/pinia/stores/settings"
 import { useUserStore } from "@/pinia/stores/user"
@@ -25,9 +26,8 @@ const loading = ref(false)
 
 /** 登录表单数据 */
 const loginFormData: LoginRequestData = reactive({
-  username: "admin",
-  password: "12345678",
-  code: ""
+  username: "",
+  password: ""
 })
 
 /** 登录表单校验规则 */
@@ -37,10 +37,7 @@ const loginFormRules: FormRules = {
   ],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 8, max: 16, message: "长度在 8 到 16 个字符", trigger: "blur" }
-  ],
-  code: [
-    { required: true, message: "请输入验证码", trigger: "blur" }
+    { min: 1, max: 8, message: "长度在 1到 8 个字符", trigger: "blur" }
   ]
 }
 
@@ -53,26 +50,18 @@ function handleLogin() {
     }
     loading.value = true
     loginApi(loginFormData).then(({ data }) => {
+      console.log(data)
+
       userStore.setToken(data.token)
       router.push("/")
+      setName(data)
     }).catch(() => {
-      createCode()
       loginFormData.password = ""
     }).finally(() => {
       loading.value = false
     })
   })
 }
-
-/** 创建验证码 */
-function createCode() {
-  // 清空已输入的验证码
-  loginFormData.code = ""
-  // 清空验证图片
-}
-
-// 初始化验证码
-createCode()
 </script>
 
 <template>

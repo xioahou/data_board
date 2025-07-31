@@ -14,3 +14,13 @@ export function setToken(token: string) {
 export function removeToken() {
   Cookies.remove(CacheKey.TOKEN)
 }
+// 存储名字
+export function getName() {
+  return Cookies.get(CacheKey.USERNAME)
+}
+export function setName(name: any) {
+  return Cookies.set(CacheKey.USERNAME, name)
+}
+export function removeName() {
+  Cookies.remove(CacheKey.USERNAME)
+}

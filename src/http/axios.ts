@@ -26,6 +26,8 @@ function createInstance() {
     (response) => {
       // apiData 是 api 返回的数据
       const apiData = response.data
+      console.log(apiData)
+
       // 二进制数据则直接返回
       const responseType = response.request?.responseType
       if (responseType === "blob" || responseType === "arraybuffer") return apiData
@@ -37,7 +39,7 @@ function createInstance() {
         return Promise.reject(new Error("非本系统的接口"))
       }
       switch (code) {
-        case 0:
+        case 200:
           // 本系统采用 code === 0 来表示没有业务错误
           return apiData
         case 401:
