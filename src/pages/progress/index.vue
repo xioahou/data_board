@@ -258,6 +258,12 @@ function delGroup(id: any) {
         <el-col :span="2">
           <el-input placeholder="项目编号" v-model="searchForm.project_id" />
         </el-col>
+        <el-col :span="5.5">
+          <el-date-picker
+            type="daterange" range-separator="To" start-placeholder="交货开始" end-placeholder="交货结束"
+            value-format="YYYY-MM-DD" v-model="delivery"
+          />
+        </el-col>
         <el-col :span="2">
           <el-select placeholder="当前状态" v-model="searchForm.status">
             <el-option v-for="(item, index) in status" :key="index" :label="item.label" :value="item.id" />
@@ -273,12 +279,6 @@ function delGroup(id: any) {
         </el-col>
         <el-col :span="2">
           <el-input placeholder="小组" v-model="searchForm.group_number" />
-        </el-col>
-        <el-col :span="6">
-          <el-date-picker
-            type="daterange" range-separator="To" start-placeholder="交货开始" end-placeholder="交货结束"
-            value-format="YYYY-MM-DD" v-model="delivery"
-          />
         </el-col>
         <el-col :span="1">
           <el-button type="primary" @click="searchGroup" :icon="Search">
