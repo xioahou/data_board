@@ -62,8 +62,31 @@ export const constantRoutes: RouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: "/progress",
+    component: Layouts,
+    redirect: "/progress/manage",
+    meta: {
+      title: "数据管理",
+      elIcon: "Lock",
+      // 可以在根路由中设置角色
+      // roles: ["admin", "editor"],
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: "manage",
+        component: () => import("@/pages/progress/index.vue"),
+        name: "Progress",
+        meta: {
+          title: "小组管理",
+          svgIcon: "dashboard",
+          affix: true
+        }
+      }
+    ]
   }
-
 ]
 
 /**
