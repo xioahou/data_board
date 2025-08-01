@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from "element-plus"
-
 import { getToken } from "@@/utils/cache/cookies"
+import { Download, Plus, Search, Upload } from "@element-plus/icons-vue"
 import { getLeaderListApi } from "../projectLeader/apis/index"
-import { exportTemplateApi, getProgressListApi, importDataApi, sumbGroupApi } from "./api/index"
+import { downloadFile } from "../utils/download"
+import { deleteAllApi, exportTemplateApi, getProgressListApi, importDataApi, sumbGroupApi } from "./api/index"
 
 const tableData = ref([])
 const total = ref(0)
 const leaderList: any = ref([])
 const delivery = ref([])
-const status = ref([{ label: "原料采购", id: 1 }, { label: "小试", id: 2 }, { label: "中试", id: 3 }, { label: "放大生产", id: 4 }, { label: "暂停", id: 5 }])
+const status = ref([{ label: "原料采购", id: "1" }, { label: "小试", id: "2" }, { label: "中试", id: "3" }, { label: "放大生产", id: "4" }, { label: "暂停", id: "5" }])
 const searchForm = ref({
   limit: 10,
   page: 1,
@@ -50,6 +51,7 @@ const dialogVisible = ref(false)
 const ruleFormRef = ref<FormInstance>()
 const title = ref("添加数据")
 const formGroup = ref({
+  id: "",
   project_id: "",
   delivery_date: "",
   technician: "",
@@ -140,26 +142,7 @@ async function exportTemplate() {
   try {
     const res: any = await exportTemplateApi()
     console.log(res)
-
-    // 文件名提取（如果后端有设置）
-    const disposition = res.headers?.["content-disposition"]
-    console.log("文件名", res.headers)
-
-    let filename = "template.xlsx"
-    const matches = disposition?.match(/filename="?([^"]+)"?/)
-    if (matches?.[1]) {
-      filename = decodeURIComponent(matches[1])
-    }
-
-    // 触发下载
-    const blob = new Blob([res.data])
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blob)
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    URL.revokeObjectURL(link.href)
-    document.body.removeChild(link)
+    await downloadFile(res)
   } catch (e) {
     console.error("下载模板失败", e)
   }
@@ -174,85 +157,171 @@ async function exportData() {
     delivery_date_s: delivery.value[0],
     delivery_date_e: delivery.value[1]
   }
-  const res: any = await importDataApi(data)
-  console.log(res)
+
+  try {
+    const res: any = await importDataApi(data)
+    await downloadFile(res)
+  } catch (e) {
+    console.error("下载模板失败", e)
+  }
 }
 async function searchGroup() {
   searchForm.value.delivery_date_s = delivery.value[0]
   searchForm.value.delivery_date_e = delivery.value[1]
   await getProgressList()
 }
+function editGroup(scope: any) {
+  console.log(scope.row)
+
+  title.value = "编辑数据"
+  formGroup.value.id = scope.row.id
+  formGroup.value.delivery_date = scope.row.delivery_date
+  formGroup.value.project_id = scope.row.project_id
+  formGroup.value.technician = scope.row.technician
+  formGroup.value.project_leader_id = scope.row.project_leader_id
+  formGroup.value.group_number = scope.row.group_number
+  // 查找 label 对应的 id
+  const matched = status.value.find(item => item.label === scope.row.status)
+  formGroup.value.status = matched ? String(matched.id) : ""
+  formGroup.value.remark = scope.row.remark
+  dialogVisible.value = true
+}
+const delIdList = ref([])
+async function deleteAll() {
+  // deleteAllApi()
+  if (delIdList.value.length === 0) return
+  ElMessageBox.confirm(
+    "确定要删除?",
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  )
+    .then(async () => {
+      const idArry = delIdList.value.map((item: any) => item.id)
+      const idsString = idArry.join(",")
+      const res: any = await deleteAllApi(idsString)
+      if (res.code === 200) {
+        ElMessage({
+          type: "success",
+          message: "删除成功"
+        })
+        await getProgressList()
+      }
+    })
+    .catch(() => {
+      ElMessage({
+        type: "info",
+        message: "删除失败"
+      })
+    })
+}
+
+function handleSelectionChange(val: any) {
+  delIdList.value = val
+}
+function delGroup(id: any) {
+  ElMessageBox.confirm(
+    "确定要删除?",
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  )
+    .then(async () => {
+      const res: any = await deleteAllApi(id)
+      if (res.code === 200) {
+        ElMessage({
+          type: "success",
+          message: "删除成功"
+        })
+        await getProgressList()
+      }
+    })
+    .catch(() => {
+      ElMessage({
+        type: "info",
+        message: "删除失败"
+      })
+    })
+}
 </script>
 
 <template>
   <div class="progress_page">
-    <el-row :gutter="10">
-      <el-col :span="2">
-        <el-input placeholder="项目编号" v-model="searchForm.project_id" />
-      </el-col>
-      <el-col :span="2">
-        <el-select placeholder="当前状态" v-model="searchForm.status">
-          <el-option
-            v-for="(item, index) in status"
-            :key="index"
-            :label="item.label"
-            :value="item.id"
+    <el-card>
+      <el-row :gutter="10">
+        <el-col :span="2">
+          <el-input placeholder="项目编号" v-model="searchForm.project_id" />
+        </el-col>
+        <el-col :span="2">
+          <el-select placeholder="当前状态" v-model="searchForm.status">
+            <el-option v-for="(item, index) in status" :key="index" :label="item.label" :value="item.id" />
+          </el-select>
+        </el-col>
+        <el-col :span="2">
+          <el-input placeholder="实验员" v-model="searchForm.technician" />
+        </el-col>
+        <el-col :span="2">
+          <el-select placeholder="项目负责人" v-model="searchForm.project_leader_id">
+            <el-option v-for="(item, index) in leaderList" :key="index" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-col>
+        <el-col :span="2">
+          <el-input placeholder="小组" v-model="searchForm.group_number" />
+        </el-col>
+        <el-col :span="6">
+          <el-date-picker
+            type="daterange" range-separator="To" start-placeholder="交货开始" end-placeholder="交货结束"
+            value-format="YYYY-MM-DD" v-model="delivery"
           />
-        </el-select>
-      </el-col>
-      <el-col :span="2">
-        <el-input placeholder="实验员" v-model="searchForm.technician" />
-      </el-col>
-      <el-col :span="2">
-        <el-select placeholder="项目负责人" v-model="searchForm.project_leader_id">
-          <el-option v-for="(item, index) in leaderList" :key="index" :label="item.name" :value="item.id" />
-        </el-select>
-      </el-col>
-      <el-col :span="2">
-        <el-input placeholder="小组" v-model="searchForm.group_number" />
-      </el-col>
-      <el-col :span="6">
-        <el-date-picker type="daterange" range-separator="To" start-placeholder="交货开始" end-placeholder="交货结束" value-format="YYYY-MM-DD" v-model="delivery" />
-      </el-col>
-      <el-col :span="1">
-        <el-button type="primary" @click="searchGroup">
-          搜索
-        </el-button>
-      </el-col>
-      <el-col :span="2" :offset="2">
-        <el-button type="success" @click="exportData">
-          导出数据
-        </el-button>
-      </el-col>
-      <el-col :span="2">
-        <el-button type="success" @click="exportTemplate">
-          导出模板
-        </el-button>
-      </el-col>
-    </el-row>
+        </el-col>
+        <el-col :span="1">
+          <el-button type="primary" @click="searchGroup" :icon="Search">
+            搜索
+          </el-button>
+        </el-col>
+        <el-col :span="2" :offset="3">
+          <el-button type="success" @click="exportData" :icon="Upload">
+            导出数据
+          </el-button>
+        </el-col>
+        <el-col :span="2">
+          <el-button type="success" @click="exportTemplate" :icon="Upload">
+            导出模板
+          </el-button>
+        </el-col>
+      </el-row>
+    </el-card>
+
     <el-row :gutter="10">
-      <el-col :span="3">
-        <el-button type="primary" @click="addGroup">
+      <el-col :span="2">
+        <el-button type="primary" @click="addGroup" :icon="Plus">
           添加数据
         </el-button>
       </el-col>
-      <el-col :span="3">
+      <el-col :span="2">
         <el-upload
-          v-model:file-list="fileList" class="upload-demo"
-          :action="actionUrl" :headers="headers" multiple :on-success="uploadSuccess"
+          v-model:file-list="fileList" class="upload-demo" :action="actionUrl" :headers="headers" multiple
+          :on-success="uploadSuccess"
         >
-          <el-button type="success">
+          <el-button type="success" :icon="Download">
             导入数据
           </el-button>
         </el-upload>
       </el-col>
-      <el-col :span="3">
-        <el-button type="danger">
+      <el-col :span="2">
+        <el-button type="danger" @click="deleteAll">
           批量删除
         </el-button>
       </el-col>
     </el-row>
-    <el-table :data="tableData" style="width: 100%">
+    <el-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange" border>
+      <el-table-column type="selection" width="55" />
       <el-table-column prop="project_id" label="项目编号" width="180" />
       <el-table-column prop="delivery_date" label="交货日期" width="180" />
       <el-table-column prop="status" label="当前状态" />
@@ -262,11 +331,11 @@ async function searchGroup() {
       <el-table-column prop="admin_name" label="维护人" />
       <el-table-column prop="time" label="维护时间" />
       <el-table-column fixed="right" label="操作" min-width="120">
-        <template #default>
-          <el-button link type="danger" size="small">
+        <template #default="scope">
+          <el-button link type="primary" size="small" @click="editGroup(scope)">
             编辑
           </el-button>
-          <el-button link type="primary" size="small">
+          <el-button link type="danger" size="small" @click="delGroup(scope.row.id)">
             删除
           </el-button>
         </template>
@@ -321,13 +390,20 @@ async function searchGroup() {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .progress_page {
   padding: 10px;
 
-  .el-row {
+  :deep(.el-card) {
     margin-bottom: 10px;
+    .el-card__body {
+      padding: 10px;
+    }
   }
+
+  // .el-row {
+  //   margin-bottom: 10px;
+  // }
 
   .el-pagination {
     margin-top: 10px;

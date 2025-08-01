@@ -32,6 +32,8 @@ function createInstance() {
       }
 
       const apiData = response.data
+      // console.log(apiData);
+
       const code = apiData.code
 
       if (code === undefined) {
