@@ -6,3 +6,10 @@ export function getLogListApi() {
     method: "get"
   })
 }
+export function getLogApi(data: any) {
+  return request({
+    url: "/auth.AdminLog/index",
+    method: "get",
+    params: data
+  })
+}
