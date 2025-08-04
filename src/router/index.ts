@@ -84,6 +84,74 @@ export const constantRoutes: RouteRecordRaw[] = [
           svgIcon: "dashboard",
           affix: true
         }
+      },
+      {
+        path: "person",
+        component: () => import("@/pages/person/index.vue"),
+        name: "Person",
+        meta: {
+          title: "负责人",
+          svgIcon: "dashboard",
+          affix: true
+        }
+      }
+    ]
+  },
+  {
+    path: "/admin",
+    component: Layouts,
+    redirect: "/admin/admanage",
+    meta: {
+      title: "管理员管理",
+      elIcon: "Lock",
+      // 可以在根路由中设置角色
+      // roles: ["admin", "editor"],
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: "admanage",
+        component: () => import("@/pages/admin/index.vue"),
+        name: "Admin",
+        meta: {
+          title: "管理员",
+          svgIcon: "dashboard",
+          affix: true
+        }
+      }
+    ]
+  },
+  {
+    path: "/log",
+    component: Layouts,
+    redirect: "/log/operlog",
+    meta: {
+      title: "操作日志",
+      elIcon: "Lock",
+      // 可以在根路由中设置角色
+      // roles: ["admin", "editor"],
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: "operlog",
+        component: () => import("@/pages/operLog/admin.vue"),
+        name: "Operlog",
+        meta: {
+          title: "管理员列表",
+          svgIcon: "dashboard",
+          affix: true
+        }
+      },
+      {
+        path: "adminlog",
+        component: () => import("@/pages/operLog/logList.vue"),
+        name: "Adminlog",
+        meta: {
+          title: "操作日志",
+          svgIcon: "dashboard",
+          affix: true
+        }
       }
     ]
   }
