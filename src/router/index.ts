@@ -69,7 +69,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     redirect: "/progress/manage",
     meta: {
       title: "数据管理",
-      elIcon: "Lock",
+      svgIcon: "data",
       // 可以在根路由中设置角色
       // roles: ["admin", "editor"],
       alwaysShow: true
@@ -81,7 +81,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Progress",
         meta: {
           title: "小组管理",
-          svgIcon: "dashboard",
+          svgIcon: "group",
           affix: true
         }
       },
@@ -91,7 +91,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Person",
         meta: {
           title: "负责人",
-          svgIcon: "dashboard",
+          svgIcon: "person",
           affix: true
         }
       }
@@ -103,7 +103,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     redirect: "/admin/admanage",
     meta: {
       title: "管理员管理",
-      elIcon: "Lock",
+      svgIcon: "admin",
       // 可以在根路由中设置角色
       // roles: ["admin", "editor"],
       alwaysShow: true
@@ -115,7 +115,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Admin",
         meta: {
           title: "管理员",
-          svgIcon: "dashboard",
+          svgIcon: "admin",
           affix: true
         }
       }
@@ -127,7 +127,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     redirect: "/log/operlog",
     meta: {
       title: "操作日志",
-      elIcon: "Lock",
+      svgIcon: "log",
       // 可以在根路由中设置角色
       // roles: ["admin", "editor"],
       alwaysShow: true
@@ -139,7 +139,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Operlog",
         meta: {
           title: "管理员列表",
-          svgIcon: "dashboard",
+          svgIcon: "list",
           affix: true
         }
       },
@@ -149,7 +149,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Adminlog",
         meta: {
           title: "操作日志",
-          svgIcon: "dashboard",
+          svgIcon: "log",
           affix: true
         }
       }

@@ -49,12 +49,12 @@ function handleLogin() {
       return
     }
     loading.value = true
-    loginApi(loginFormData).then(({ data }) => {
+    loginApi(loginFormData).then(({ data }: { data: any }) => {
       console.log(data)
 
       userStore.setToken(data.token)
       router.push("/")
-      setName(data)
+      setName(data.name)
     }).catch(() => {
       loginFormData.password = ""
     }).finally(() => {
